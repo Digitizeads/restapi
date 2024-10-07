@@ -10,7 +10,7 @@ use PHPMailer\PHPMailer\Exception;
 require_once '../phpmailer/src/Exception.php';
 require_once '../phpmailer/src/PHPMailer.php';
 require_once '../phpmailer/src/SMTP.php';
-// contact.php - REST API
+// clientcontact.php - REST API
 header("Access-Control-Allow-Origin: *");
 header("Content-Type: application/json; charset=UTF-8");
 header("Access-Control-Allow-Methods: GET, POST, PUT, DELETE");
@@ -53,7 +53,7 @@ switch ($requestMethod) {
 function getItems()
 {
   global $pdo;
-  $query = "SELECT * FROM contact";
+  $query = "SELECT * FROM clientcontact";
   $stmt = $pdo->prepare($query);
   $stmt->execute();
   $items = $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -64,7 +64,7 @@ function getItems()
 function getItem($id)
 {
   global $pdo;
-  $query = "SELECT * FROM contact WHERE id = :id";
+  $query = "SELECT * FROM clientcontact WHERE id = :id";
   $stmt = $pdo->prepare($query);
   $stmt->bindParam(':id', $id);
   $stmt->execute();
@@ -83,22 +83,21 @@ function addItem()
   $data = json_decode(file_get_contents("php://input"), true);
 
   // Input validation (check if required fields are set)
-  if (!isset($data['fname'], $data['lname'], $data['email'], $data['mobile'], $data['services'], $data['schedule'], $data['message'])) {
+  if (!isset($data['fname'], $data['lname'], $data['email'], $data['company'], $data['mobile'], $data['description'])) {
     echo json_encode(["message" => "Invalid input"]);
     return;
   }
 
   // Insert into database
-  $query = "INSERT INTO contact (fname, lname, email, mobile, services, schedule, message, createdDt, updatedDt) VALUES (:fname, :lname, :email, :mobile, :services, :schedule, :message, now(), now())";
+  $query = "INSERT INTO clientcontact (fname, lname, email, company, mobile, description, createdDt) VALUES (:fname, :lname, :email, :company, :mobile, :description, now())";
   $stmt = $pdo->prepare($query);
 
   $stmt->bindParam(':fname', $data['fname']);
   $stmt->bindParam(':lname', $data['lname']);
   $stmt->bindParam(':email', $data['email']);
+  $stmt->bindParam(':company', $data['company']);
   $stmt->bindParam(':mobile', $data['mobile']);
-  $stmt->bindParam(':services', $data['services']);
-  $stmt->bindParam(':schedule', $data['schedule']);
-  $stmt->bindParam(':message', $data['message']);
+  $stmt->bindParam(':description', $data['description']);
 
   if ($stmt->execute()) {
     // If the item is successfully created, send an email
@@ -130,15 +129,14 @@ function sendEmail($data)
 
     // Content
     $mail->isHTML(true);
-    $mail->Subject = 'New Contact Form Submission';
+    $mail->Subject = 'Client Contact Form Submission';
     $mail->Body    = '
-      <h1>Contact Form Submission</h1>
+      <h1>Client Contact Form Submission</h1>
       <p><strong>Full Name:</strong> ' . $data['fname'] ." ".$data['lname'] . '</p>
       <p><strong>Email:</strong> ' . $data['email'] . '</p>
+      <p><strong>Company:</strong> ' . $data['company'] . '</p>
       <p><strong>Mobile:</strong> ' . $data['mobile'] . '</p>
-      <p><strong>Services:</strong> ' . $data['services'] . '</p>
-      <p><strong>Schedule:</strong> ' . $data['schedule'] . '</p>
-      <p><strong>Message:</strong> ' . $data['message'] . '</p>';
+      <p><strong>Description:</strong> ' . $data['description'] . '</p>';
 
     $mail->send();
   } catch (Exception $e) {
@@ -151,7 +149,7 @@ function updateItem($id)
 {
   global $pdo;
   $data = json_decode(file_get_contents("php://input"), true);
-  $query = "UPDATE contact SET name = :name, description = :description WHERE id = :id";
+  $query = "UPDATE clientcontact SET name = :name, description = :description WHERE id = :id";
   $stmt = $pdo->prepare($query);
   $stmt->bindParam(':name', $data['name']);
   $stmt->bindParam(':description', $data['description']);
@@ -167,7 +165,7 @@ function updateItem($id)
 function deleteItem($id)
 {
   global $pdo;
-  $query = "DELETE FROM contact WHERE id = :id";
+  $query = "DELETE FROM clientcontact WHERE id = :id";
   $stmt = $pdo->prepare($query);
   $stmt->bindParam(':id', $id);
   if ($stmt->execute()) {
