@@ -1,7 +1,13 @@
 <?php
 // Include config if needed
 require_once '../config.php'; // Adjust this path based on where your config.php is located
+use PHPMailer\PHPMailer\PHPMailer;
+use PHPMailer\PHPMailer\Exception;
 
+// Load the PHPMailer classes from the src folder
+require_once '../phpmailer/src/Exception.php';
+require_once '../phpmailer/src/PHPMailer.php';
+require_once '../phpmailer/src/SMTP.php';
 // contact.php - REST API
 header("Access-Control-Allow-Origin: *");
 header("Content-Type: application/json; charset=UTF-8");
@@ -73,27 +79,83 @@ function addItem()
 {
   global $pdo;
 
-  // Access form-data from $_POST
-  if (!isset($_POST['email'])) {
-    echo json_encode(["message" => "Invalid input"]);
+  // Ensure the POST request contains the 'email'
+  if (!isset($_POST['email']) || empty($_POST['email'])) {
+    echo json_encode(["message" => "Invalid input: Email is required"]);
     return;
   }
 
   $email = $_POST['email'];
 
-  // Insert into database
+  // Basic email validation (optional)
+  if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+    echo json_encode(["message" => "Invalid input: Invalid email format"]);
+    return;
+  }
+
+  // Insert into the database
   $query = "INSERT INTO newsletter (email, createdDt) VALUES (:email, now())";
   $stmt = $pdo->prepare($query);
-
   $stmt->bindParam(':email', $email);
 
-  if ($stmt->execute()) {
-    echo json_encode(["message" => "Email added successfully"]);
-  } else {
-    echo json_encode(["message" => "Failed to add email"]);
+  // Execute and check for errors
+  try {
+    if ($stmt->execute()) {
+      // After inserting, send email using PHPMailer
+      sendEmail($email);
+      echo json_encode(["message" => "Email added and confirmation sent successfully"]);
+    } else {
+      echo json_encode(["message" => "Failed to add email"]);
+    }
+  } catch (Exception $e) {
+    // Log any exception for debugging
+    error_log($e->getMessage());
+    echo json_encode(["message" => "Error occurred: " . $e->getMessage()]);
   }
 }
 
+function sendEmail($email)
+{
+  // Create a new PHPMailer instance
+  $mail = new PHPMailer(true);
+
+  try {
+    // SMTP server settings
+    $mail->isSMTP();
+    $mail->Host = 'smtp.gmail.com';           // Set the SMTP server to send through
+    $mail->SMTPAuth = true;                   // Enable SMTP authentication
+    $mail->Username = 'rajat.web71@gmail.com'; // Your Gmail address
+    $mail->Password = 'ctwh vyny rrdh nwcu';    // Your Gmail app password
+    $mail->SMTPSecure = PHPMailer::ENCRYPTION_SMTPS; // Enable TLS encryption
+    $mail->Port = 465;                        // TCP port for SSL
+
+    // Recipients
+    $mail->setFrom('rajat.web71@gmail.com', 'Verify-ads');
+    $mail->addAddress($email); // Add recipient
+
+    // Email content
+    $mail->isHTML(true);                                  // Set email format to HTML
+    $mail->Subject = 'Newsletter Subscription Confirmation';
+    // HTML Body
+    $mail->Body = '
+        <html>
+        <body>
+            <p>Dear Subscriber,</p>
+            <p>Thank you for subscribing to our Newsletter! Stay tuned for our latest Blogs & Updates.</p>
+            <br>
+            <p>Regards,</p>
+            <p><strong>Tecknify</strong></p>
+        </body>
+        </html>';
+    $mail->AltBody = 'Thank you for subscribing to our newsletter!'; // Plain text version
+
+    // Send the email
+    $mail->send();
+  } catch (Exception $e) {
+    error_log('Mail could not be sent. PHPMailer Error: ' . $mail->ErrorInfo);
+    echo json_encode(["message" => "Failed to send confirmation email."]);
+  }
+}
 
 // Function to update an existing item
 /* function updateItem($id)
