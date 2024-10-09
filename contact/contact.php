@@ -126,7 +126,7 @@ function sendEmail($data)
 
     // Recipients
     $mail->setFrom('rajat.web71@gmail.com', 'no-reply');
-    $mail->addAddress('rajattecknify0110@gmail.com', 'Tecknify'); // Send email to admin-mail
+    $mail->addAddress('rajattecknify0110@gmail.com', 'Verify-ads'); // Send email to admin-mail
 
     // Content
     $mail->isHTML(true);

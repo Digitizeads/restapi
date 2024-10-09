@@ -1,9 +1,11 @@
 <?php
-// config.php - Database connection
+// Local Database connection
 $host = 'localhost';
 $dbname = 'verifyads';
 $username = 'root';
 $password = '';
+
+//Production Database connection
 
 try {
     $pdo = new PDO("mysql:host=$host;dbname=$dbname", $username, $password);

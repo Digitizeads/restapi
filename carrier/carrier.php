@@ -109,49 +109,29 @@ function addItem()
             return;
         }
 
-        // Define upload directory
-        $uploadDir = __DIR__ . DIRECTORY_SEPARATOR . 'file_upload' . DIRECTORY_SEPARATOR;
+        // Prepare SQL query without storing the file
+        $query = "INSERT INTO carrier (name, email, mobile, position, createdDt) 
+                  VALUES (:name, :email, :mobile, :position, now())";
+        $stmt = $pdo->prepare($query);
+        $stmt->bindParam(':name', $name);
+        $stmt->bindParam(':email', $email);
+        $stmt->bindParam(':mobile', $mobile);
+        $stmt->bindParam(':position', $position);
 
-        // Ensure directory exists
-        if (!file_exists($uploadDir)) {
-            if (!mkdir($uploadDir, 0777, true)) {
-                echo json_encode(["message" => "Failed to create upload directory."]);
-                return;
-            }
-        }
+        if ($stmt->execute()) {
+            echo json_encode(["message" => "Data saved successfully."]);
 
-        // Create a unique file name to avoid overwriting
-        $fileName = uniqid() . '_' . basename($_FILES['file']['name']);
-        $targetFilePath = $uploadDir . $fileName;
-
-        // Attempt to move the uploaded file to the target directory
-        if (move_uploaded_file($_FILES['file']['tmp_name'], $targetFilePath)) {
-            // Prepare SQL query with file path
-            $query = "INSERT INTO carrier (name, email, mobile, position, file_path, createdDt) 
-                      VALUES (:name, :email, :mobile, :position, :file_path, now())";
-            $stmt = $pdo->prepare($query);
-            $stmt->bindParam(':name', $name);
-            $stmt->bindParam(':email', $email);
-            $stmt->bindParam(':mobile', $mobile);
-            $stmt->bindParam(':position', $position);
-            $stmt->bindParam(':file_path', $targetFilePath); // Insert file path into the database
-
-            if ($stmt->execute()) {
-                echo json_encode(["message" => "File uploaded and data saved successfully."]);
-
-                // Send email notification
-                sendEmail([
-                    'name' => $name,
-                    'email' => $email,
-                    'mobile' => $mobile,
-                    'position' => $position,
-                    'file' => $targetFilePath // Path to the uploaded file
-                ]);
-            } else {
-                echo json_encode(["message" => "Failed to save data in the database."]);
-            }
+            // Send email notification with file attachment
+            sendEmail([
+                'name' => $name,
+                'email' => $email,
+                'mobile' => $mobile,
+                'position' => $position,
+                'file_tmp' => $_FILES['file']['tmp_name'], // Temporary file path
+                'file_name' => $_FILES['file']['name'] // Original file name
+            ]);
         } else {
-            echo json_encode(["message" => "Failed to upload file."]);
+            echo json_encode(["message" => "Failed to save data in the database."]);
         }
     } else {
         echo json_encode(["message" => "No file uploaded or upload error."]);
@@ -187,9 +167,9 @@ function sendEmail($data)
             <p><strong>Mobile:</strong> ' . $data['mobile'] . '</p>
             <p><strong>Position:</strong> ' . $data['position'] . '</p>';
 
-        // Check if a file is uploaded and attach the file
-        if (isset($data['file']) && file_exists($data['file'])) {
-            $mail->addAttachment($data['file']); // Attach the file
+        // Attach the file directly from the temporary upload directory
+        if (isset($data['file_tmp']) && file_exists($data['file_tmp'])) {
+            $mail->addAttachment($data['file_tmp'], $data['file_name']); // Attach the uploaded file
         }
 
         $mail->send();
