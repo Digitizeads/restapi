@@ -79,34 +79,36 @@ function getItem($id)
 // Function to add a new item and send data to email
 function addItem()
 {
-  global $pdo;
-  $data = json_decode(file_get_contents("php://input"), true);
+    global $pdo;
 
-  // Input validation (check if required fields are set)
-  if (!isset($data['fname'], $data['lname'], $data['email'], $data['mobile'], $data['services'], $data['schedule'], $data['message'])) {
-    echo json_encode(["message" => "Invalid input"]);
-    return;
-  }
+    // Access form-data using $_POST
+    $data = $_POST;
 
-  // Insert into database
-  $query = "INSERT INTO contact (fname, lname, email, mobile, services, schedule, message, createdDt, updatedDt) VALUES (:fname, :lname, :email, :mobile, :services, :schedule, :message, now(), now())";
-  $stmt = $pdo->prepare($query);
+    // Input validation (check if required fields are set)
+    if (!isset($data['fname'], $data['lname'], $data['email'], $data['mobile'], $data['services'], $data['schedule'], $data['message'])) {
+        echo json_encode(["message" => "Invalid input"]);
+        return;
+    }
 
-  $stmt->bindParam(':fname', $data['fname']);
-  $stmt->bindParam(':lname', $data['lname']);
-  $stmt->bindParam(':email', $data['email']);
-  $stmt->bindParam(':mobile', $data['mobile']);
-  $stmt->bindParam(':services', $data['services']);
-  $stmt->bindParam(':schedule', $data['schedule']);
-  $stmt->bindParam(':message', $data['message']);
+    // Insert into database
+    $query = "INSERT INTO contact (fname, lname, email, mobile, services, schedule, message, createdDt, updatedDt) VALUES (:fname, :lname, :email, :mobile, :services, :schedule, :message, now(), now())";
+    $stmt = $pdo->prepare($query);
 
-  if ($stmt->execute()) {
-    // If the item is successfully created, send an email
-    sendEmail($data);
-    echo json_encode(["message" => "Item created and email sent"]);
-  } else {
-    echo json_encode(["message" => "Failed to create item"]);
-  }
+    $stmt->bindParam(':fname', $data['fname']);
+    $stmt->bindParam(':lname', $data['lname']);
+    $stmt->bindParam(':email', $data['email']);
+    $stmt->bindParam(':mobile', $data['mobile']);
+    $stmt->bindParam(':services', $data['services']);
+    $stmt->bindParam(':schedule', $data['schedule']);
+    $stmt->bindParam(':message', $data['message']);
+
+    if ($stmt->execute()) {
+        // If the item is successfully created, send an email
+        sendEmail($data);
+        echo json_encode(["message" => "Item created and email sent"]);
+    } else {
+        echo json_encode(["message" => "Failed to create item"]);
+    }
 }
 
 // Function to send email to rajattecknify0110@gmail.com
@@ -119,14 +121,14 @@ function sendEmail($data)
     $mail->isSMTP();
     $mail->Host = 'smtp.gmail.com';  // Specify main SMTP server
     $mail->SMTPAuth   = true;
-    $mail->Username   = 'rajat.web71@gmail.com'; // SMTP username
-    $mail->Password   = 'ctwh vyny rrdh nwcu';   // SMTP password
+    $mail->Username   = 'digitalpabitra@gmail.com'; // SMTP username
+    $mail->Password   = 'hqog evqx wgtw fadm';   // SMTP password
     $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS; // Enable TLS encryption
     $mail->Port       = 587;
 
     // Recipients
-    $mail->setFrom('rajat.web71@gmail.com', 'no-reply');
-    $mail->addAddress('rajattecknify0110@gmail.com', 'Verify-ads'); // Send email to admin-mail
+    $mail->setFrom('digitalpabitra@gmail.com', 'no-reply');
+    $mail->addAddress('sales@digitizeads.com', 'Verify-ads'); // Send email to admin-mail
 
     // Content
     $mail->isHTML(true);
