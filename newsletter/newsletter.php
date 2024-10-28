@@ -124,13 +124,13 @@ function sendEmail($email)
     $mail->isSMTP();
     $mail->Host = 'smtp.gmail.com';           // Set the SMTP server to send through
     $mail->SMTPAuth = true;                   // Enable SMTP authentication
-    $mail->Username = 'rajat.web71@gmail.com'; // Your Gmail address
-    $mail->Password = 'ctwh vyny rrdh nwcu';    // Your Gmail app password
+    $mail->Username = 'digitalpabitra@gmail.com'; // Your Gmail address
+    $mail->Password = 'hqog evqx wgtw fadm';    // Your Gmail app password
     $mail->SMTPSecure = PHPMailer::ENCRYPTION_SMTPS; // Enable TLS encryption
     $mail->Port = 465;                        // TCP port for SSL
 
     // Recipients
-    $mail->setFrom('rajat.web71@gmail.com', 'Verify-ads');
+    $mail->setFrom('digitalpabitra@gmail.com', 'Verify-ads');
     $mail->addAddress($email); // Add recipient
 
     // Email content

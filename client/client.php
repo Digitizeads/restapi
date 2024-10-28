@@ -118,14 +118,14 @@ function sendEmail($data)
     $mail->isSMTP();
     $mail->Host = 'smtp.gmail.com';  // Specify main SMTP server
     $mail->SMTPAuth   = true;
-    $mail->Username   = 'rajat.web71@gmail.com'; // SMTP username
-    $mail->Password   = 'ctwh vyny rrdh nwcu';   // SMTP password
+    $mail->Username   = 'digitalpabitra@gmail.com'; // SMTP username
+    $mail->Password   = 'hqog evqx wgtw fadm';   // SMTP password
     $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS; // Enable TLS encryption
     $mail->Port       = 587;
 
     // Recipients
-    $mail->setFrom('rajat.web71@gmail.com', 'no-reply');
-    $mail->addAddress('rajattecknify0110@gmail.com', 'Tecknify'); // Send email to admin-mail
+    $mail->setFrom('digitalpabitra@gmail.com', 'Lead');
+    $mail->addAddress('sales@digitizeads.com', 'Verify-ads'); // Send email to admin-mail
 
     // Content
     $mail->isHTML(true);
